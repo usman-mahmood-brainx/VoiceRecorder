@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".DiiferentPlayersActivity">
+    tools:context=".Activities.DiiferentPlayersActivity">
 
 
 
@@ -71,152 +71,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/rl_recorder" />
 
-    <TextView
-        android:id="@+id/tv_player_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_players"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
         android:layout_marginTop="20dp"
-        android:text="MediaPlayer"
-        android:textColor="@color/black"
-        android:textSize="25sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_playaers_heading" />
-
-    <RelativeLayout
-        android:id="@+id/rl_media_player"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_player_name"
-        >
-
-        <Button
-            android:id="@+id/btn_start_stop"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Start" />
-        <TextView
-            android:id="@+id/tv_timer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="20sp"
-            android:textColor="@color/black"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="40dp"
-            android:text="0:00"
-            android:layout_toRightOf="@+id/btn_start_stop"
-            />
-        <Button
-            android:id="@+id/btn_pause_resume"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Pause"
-            android:enabled="false"
-            android:layout_marginStart="40dp"
-            android:layout_toEndOf="@+id/tv_timer"
-            />
-    </RelativeLayout>
-
-
-    <TextView
-        android:id="@+id/tv_exo_player_header"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:text="Exo Player"
-        android:textColor="@color/black"
-        android:textSize="25sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/rl_media_player" />
-
-    <RelativeLayout
-        android:id="@+id/rl_exo_player"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_exo_player_header"
-        >
-
-        <Button
-            android:id="@+id/btn_start_stop_exo_player"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Start" />
-        <TextView
-            android:id="@+id/tv_exo_player_time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="20sp"
-            android:textColor="@color/black"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="40dp"
-            android:text="0:00"
-            android:layout_toRightOf="@+id/btn_start_stop_exo_player"
-            />
-        <Button
-            android:id="@+id/btn_pause_resume_exo_player"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Pause"
-            android:enabled="false"
-            android:layout_marginStart="40dp"
-            android:layout_toEndOf="@+id/tv_exo_player_time"
-            />
-    </RelativeLayout>
-
-    <TextView
-        android:id="@+id/tv_sound_pool_header"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:text="Sound Pool"
-        android:textColor="@color/black"
-        android:textSize="25sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/rl_exo_player" />
-
-    <RelativeLayout
-        android:id="@+id/rl_sound_pool"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_sound_pool_header"
-        >
-
-        <Button
-            android:id="@+id/btn_start_stop_sound_pool"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Start" />
-        <TextView
-            android:id="@+id/tv_sound_pool_time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="20sp"
-            android:textColor="@color/black"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="40dp"
-            android:text="0:00"
-            android:layout_toRightOf="@+id/btn_start_stop_sound_pool"
-            />
-        <Button
-            android:id="@+id/btn_pause_resume_sound_pool"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Pause"
-            android:enabled="false"
-            android:layout_marginStart="40dp"
-            android:layout_toEndOf="@+id/tv_sound_pool_time"
-            />
-    </RelativeLayout>
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_playaers_heading"
+        tools:listitem="@layout/item_audio_player"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

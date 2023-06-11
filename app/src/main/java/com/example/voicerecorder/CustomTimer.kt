@@ -1,21 +1,20 @@
 package com.example.voicerecorder
 
 import android.os.CountDownTimer
-import com.example.voicerecorder.Interfaces.TimerListener
 import java.text.SimpleDateFormat
 import java.util.*
 
-class CustomTimer(private val timerListener: TimerListener) {
+class CustomTimer() {
     private var timer: CountDownTimer? = null
     private var isTimerRunning: Boolean = false
     private var elapsedMilliseconds: Long = 0
 
-    fun startTimer() {
+    fun startTimer(changeRecordingText: (formatedTime:String) -> Unit) {
         timer = object : CountDownTimer(Long.MAX_VALUE, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 elapsedMilliseconds += 1000
                 val formattedTime = formatTime(elapsedMilliseconds)
-                timerListener.changeRecordingText(formattedTime)
+                changeRecordingText(formattedTime)
             }
 
             override fun onFinish() {
@@ -34,9 +33,8 @@ class CustomTimer(private val timerListener: TimerListener) {
     }
 
     fun resumeTimer() {
-        if (!isTimerRunning) {
-            startTimer()
-        }
+       timer?.start()
+        isTimerRunning = true
     }
 
     fun stopTimer() {

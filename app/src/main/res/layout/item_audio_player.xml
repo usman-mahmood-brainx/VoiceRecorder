@@ -28,12 +28,12 @@
         >
 
         <Button
-            android:id="@+id/btn_start_stop"
+            android:id="@+id/btn_start_stop_player"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Start" />
         <TextView
-            android:id="@+id/tv_timer"
+            android:id="@+id/tv_record_timer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="20sp"
@@ -41,16 +41,17 @@
             android:layout_centerVertical="true"
             android:layout_marginStart="40dp"
             android:text="0:00"
-            android:layout_toRightOf="@+id/btn_start_stop"
+            android:layout_toRightOf="@+id/btn_start_stop_player"
+            android:visibility="invisible"
             />
         <Button
-            android:id="@+id/btn_pause_resume"
+            android:id="@+id/btn_pause_resume_player"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Pause"
             android:enabled="false"
             android:layout_marginStart="40dp"
-            android:layout_toEndOf="@+id/tv_timer"
+            android:layout_toEndOf="@+id/tv_record_timer"
             />
     </RelativeLayout>
 

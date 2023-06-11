@@ -1,4 +1,4 @@
-package com.example.voicerecorder
+package com.example.voicerecorder.Activities
 
 import android.Manifest
 import android.content.Intent
@@ -11,7 +11,14 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.example.voicerecorder.Interfaces.TimerListener
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.voicerecorder.Adapters.AudioPlayerAdapter
+import com.example.voicerecorder.AudioPlayers.CustomExoPlayer
+import com.example.voicerecorder.AudioPlayers.CustomMediaPlayer
+import com.example.voicerecorder.AudioPlayers.CustomSoundPool
+import com.example.voicerecorder.AudioRecorder
+import com.example.voicerecorder.CustomTimer
+import com.example.voicerecorder.Models.AudioPlayer
 import com.example.voicerecorder.databinding.ActivityDiiferentPlayersBinding
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -25,7 +32,10 @@ class DiiferentPlayersActivity : AppCompatActivity() {
     private val recorder by lazy {
         AudioRecorder(applicationContext)
     }
-    private lateinit var recorderTimer: CustomTimer
+    private val recorderTimer by lazy {
+        CustomTimer()
+    }
+
     private var audioFile: File? = null
     private var isRecordingStart = false
     private var isRecordingPause = false
@@ -45,14 +55,10 @@ class DiiferentPlayersActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityDiiferentPlayersBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        recorderTimer = CustomTimer(object : TimerListener {
-            override fun changeRecordingText(time: String) {
-                binding.tvRecordingTime.text = time
-            }
-        })
-
         initListener()
+
+        binding.rvPlayers.layoutManager = LinearLayoutManager(this)
+
     }
 
     private fun initListener() {
@@ -78,9 +84,6 @@ class DiiferentPlayersActivity : AppCompatActivity() {
            pauseResumeRecording()
        }
 
-       binding.btnStartStopMediaPlayer.setOnClickListener {
-
-       }
 
     }
 
@@ -91,7 +94,9 @@ class DiiferentPlayersActivity : AppCompatActivity() {
 
         }
         binding.tvRecordingTime.visibility = View.VISIBLE
-        recorderTimer.startTimer()
+        recorderTimer.startTimer{time->
+            binding.tvRecordingTime.text = time
+        }
         isRecordingStart = true
         binding.btnStartStopRecording.text = "Stop"
         binding.btnPauseResumeRecording.apply {
@@ -107,6 +112,10 @@ class DiiferentPlayersActivity : AppCompatActivity() {
         binding.btnPauseResumeRecording.apply {
             text = "Pause"
             isEnabled = false
+        }
+        audioFile?.let{
+            val adapter = AudioPlayerAdapter(getAudioPlayersList(),it)
+            binding.rvPlayers.adapter = adapter
         }
     }
 
@@ -154,5 +163,29 @@ class DiiferentPlayersActivity : AppCompatActivity() {
             }
         }
     }
+
+    fun getAudioPlayersList() : MutableList<AudioPlayer>{
+        return mutableListOf(
+            AudioPlayer(
+                CustomMediaPlayer(applicationContext),
+                false,
+                false,
+                CustomTimer()
+            ),
+            AudioPlayer(
+                CustomExoPlayer(applicationContext),
+                false,
+                false,
+                CustomTimer()
+            ),
+            AudioPlayer(
+                CustomSoundPool(applicationContext),
+                false,
+                false,
+                CustomTimer()
+            )
+        )
+    }
+
 
 }

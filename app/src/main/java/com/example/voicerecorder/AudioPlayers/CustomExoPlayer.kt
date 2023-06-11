@@ -9,9 +9,10 @@ import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import java.io.File
 
-class CustomExoPlayer(private val context: Context) : AudioPlayerInterface {
-    private var player: ExoPlayer? = null
+open class CustomExoPlayer(private val context: Context) : AudioPlayerInterface {
+    protected var player: ExoPlayer? = null
     private var playbackPosition: Long = 0
+
 
     override fun getPlayerName(): String {
         return "Exo Player"
@@ -33,16 +34,14 @@ class CustomExoPlayer(private val context: Context) : AudioPlayerInterface {
                     }
                 }
             })
-
-
         }
-
-
     }
 
     override fun stop() {
-        player?.stop()
-        player?.release()
+        player?.apply{
+            stop()
+            release()
+        }
         player = null
     }
 
@@ -54,5 +53,9 @@ class CustomExoPlayer(private val context: Context) : AudioPlayerInterface {
     override fun resume() {
         player?.playWhenReady = true
         player?.seekTo(playbackPosition)
+    }
+
+    override fun seekto(position:Long) {
+        player?.seekTo(position)
     }
 }

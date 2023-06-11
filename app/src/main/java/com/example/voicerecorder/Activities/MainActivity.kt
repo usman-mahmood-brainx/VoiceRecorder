@@ -1,4 +1,4 @@
-package com.example.voicerecorder
+package com.example.voicerecorder.Activities
 
 import android.Manifest
 import android.content.ContentValues
@@ -13,7 +13,8 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.example.voicerecorder.AudioPlayers.CustomSoundPool
-import com.example.voicerecorder.Interfaces.TimerListener
+import com.example.voicerecorder.AudioRecorder
+import com.example.voicerecorder.CustomTimer
 import com.example.voicerecorder.databinding.ActivityMainBinding
 import java.io.File
 import java.io.FileInputStream
@@ -42,8 +43,12 @@ class MainActivity : AppCompatActivity() {
     private val player by lazy {
         CustomSoundPool(applicationContext)
     }
-    private lateinit var recorderTimer: CustomTimer
-    private lateinit var playerTimer: CustomTimer
+    private val recorderTimer by lazy {
+        CustomTimer()
+    }
+    private val playerTimer by lazy {
+        CustomTimer()
+    }
     private var audioFile: File? = null
     private var isRecordingStart = false
     private var isRecordingPause = false
@@ -56,20 +61,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        val intent = Intent(this,DiiferentPlayersActivity::class.java)
+        val intent = Intent(this, VoiceChatActivity::class.java)
         startActivity(intent)
         finish()
-        recorderTimer = CustomTimer(object : TimerListener {
-            override fun changeRecordingText(time: String) {
-                binding.tvRecordingTime.text = time
-            }
-        })
-        playerTimer =  CustomTimer(object : TimerListener {
-            override fun changeRecordingText(time: String) {
-                binding.tvPlayerTime.text = time
-            }
-        })
-
 
         initListeners()
     }
@@ -110,7 +104,9 @@ class MainActivity : AppCompatActivity() {
             audioFile = it
         }
         binding.tvRecordingTime.visibility = View.VISIBLE
-        recorderTimer.startTimer()
+        recorderTimer.startTimer{ time->
+            binding.tvRecordingTime.text = time
+        }
         isRecordingStart = true
         binding.btnStartStopRecording.text = "Stop"
         binding.btnPauseResumeRecording.apply {
@@ -183,7 +179,9 @@ class MainActivity : AppCompatActivity() {
             }
             isPlayerRunning = true
             binding.tvPlayerTime.visibility = View.VISIBLE
-            playerTimer.startTimer()
+            playerTimer.startTimer{ time->
+                binding.tvPlayerTime.text = time
+            }
         }
         else{
             Toast.makeText(this,"No Audio",Toast.LENGTH_SHORT).show()

@@ -10,9 +10,13 @@ import com.example.voicerecorder.Interfaces.AudioPlayerInterface
 import java.io.File
 
 class CustomSoundPool(private val context: Context) : AudioPlayerInterface {
+
+
     private var soundPool: SoundPool? = null
     private var soundId: Int? = null
     private var isPlaying: Boolean = false
+    private var handler:Handler? = null
+    private var progressRunable:Runnable? =null
 
     override fun getPlayerName(): String {
         return "Sound Pool"
@@ -36,11 +40,13 @@ class CustomSoundPool(private val context: Context) : AudioPlayerInterface {
         }
         isPlaying = true
 
-        val handler = Handler(Looper.getMainLooper())
-        handler.postDelayed(Runnable {
+        handler = Handler(Looper.getMainLooper())
+        progressRunable = Runnable {
             soundPool?.release()
             onComplete.invoke()
-        },getAudioDuration(file))
+        }
+
+        handler?.postDelayed(progressRunable!!,getAudioDuration(file))
 
 
 
