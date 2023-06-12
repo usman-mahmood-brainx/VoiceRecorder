@@ -20,15 +20,22 @@ import java.util.*
 class VoiceNoteAdapter(
     private var voiceNoteList: List<VoiceNote>,
     private val context:Context,
-    private val recyclerView:RecyclerView
+    private val myplayer: VoiceNotePlayer
 ) : RecyclerView.Adapter<VoiceNoteAdapter.ViewHolder>() {
 
-    private var currentPlayingPosition: Int = -1
+    private lateinit var currentHolder: ViewHolder
 
 
     fun setList(list : List<VoiceNote>){
-        voiceNoteList = list
-        notifyDataSetChanged()
+        if(voiceNoteList.isEmpty()){
+            voiceNoteList = list
+            notifyDataSetChanged()
+        }
+        else{
+            voiceNoteList = list
+            notifyItemInserted(0)
+        }
+
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -46,27 +53,28 @@ class VoiceNoteAdapter(
 
 
             btnPlayPause.setOnClickListener{
+                if(!(::currentHolder.isInitialized)){
+                    currentHolder = holder
+                }
+                else if(currentHolder != holder ){
+                    if(currentHolder.isPlaying == true && currentHolder.isStart == true){
+                        pauseResumeAudio(currentHolder)
+                        Log.d("Recording ","Pause")
+                    }
+                    currentHolder = holder
+                }
+
                 if(!isStart && !isPlaying) {
-                   playAudio()
+                   playAudio(holder)
                     btnPlayPause.setImageResource(R.drawable.ic_pause)
                 }
                 else{
-                    pauseResumeAudio()
+                    pauseResumeAudio(holder)
                 }
 
-                for (i in 0 until voiceNoteList.size) {
-                    if (i != position) {
-                        val otherHolder = recyclerView.findViewHolderForAdapterPosition(i) as? ViewHolder
-                        if(otherHolder?.isPlaying == true && otherHolder?.isStart == true){
-                            otherHolder?.pauseResumeAudio()
-                            Log.d("Recording ","Pause")
-                        }
 
-                    }
-                }
+
             }
-
-
 
             seekBarVn.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -92,6 +100,64 @@ class VoiceNoteAdapter(
         return voiceNoteList.size
     }
 
+    fun playAudio(holder:ViewHolder){
+        holder.apply {
+            player.playVoiceNote(
+                file = audioFile!!,
+                onComplete = { stopAudio(this@apply) },
+                onReady = { currentPosition ->
+                    seekBarVn.progress = currentPosition
+                    tvTimer.text = formatTime(currentPosition.toLong())
+                }
+            )
+            player.seekto(seekBarVn.progress.toLong())
+            isStart = true
+            isPlaying = true
+        }
+    }
+
+    fun pauseResumeAudio(holder:ViewHolder){
+        holder.apply {
+            if (isPlaying) {
+                player.pause()
+                btnPlayPause.setImageResource(R.drawable.ic_play)
+                isPlaying = false
+            } else {
+                player.resume()
+                player.seekto(seekBarVn.progress.toLong())
+                btnPlayPause.setImageResource(R.drawable.ic_pause)
+                isPlaying = true
+            }
+        }
+
+    }
+
+    private fun stopAudio(holder:ViewHolder){
+        holder.apply {
+            player?.stop()
+            isStart = false
+            isPlaying = false
+            btnPlayPause.setImageResource(R.drawable.ic_play)
+            seekBarVn.progress = 0
+            tvTimer.text = formatTime(duration.toLong())
+        }
+    }
+
+    private fun formatTime(milliseconds: Long): String {
+        val timeFormat = SimpleDateFormat("m:ss", Locale.getDefault())
+        return timeFormat.format(Date(milliseconds))
+    }
+
+    private fun getAudioDuration(file: File): Int {
+        val mediaPlayer = MediaPlayer()
+        mediaPlayer.setDataSource(file.absolutePath)
+        mediaPlayer.prepare()
+        val duration = mediaPlayer.duration
+        mediaPlayer.release()
+        return duration
+    }
+
+
     inner class ViewHolder(VoiceNoteItemView: View) : RecyclerView.ViewHolder(VoiceNoteItemView) {
         val tvTimer: TextView = VoiceNoteItemView.findViewById(R.id.tv_timer_vn)
         val btnPlayPause: ImageButton = VoiceNoteItemView.findViewById(R.id.btn_play_pause_vn)
@@ -103,7 +169,6 @@ class VoiceNoteAdapter(
         var duration:Int = 0
 
         fun bind(voiceNote: VoiceNote) {
-            // Set data to views
             val file =  File(context.filesDir, voiceNote.filePath)
             audioFile =  file
             duration = getAudioDuration(file)
@@ -111,59 +176,6 @@ class VoiceNoteAdapter(
             seekBarVn.max = duration
             seekBarVn.progress=0
 
-        }
-
-
-         fun playAudio() {
-            player.playVoiceNote(
-                file = audioFile!!,
-                onComplete = { stopAudio() },
-                onReady= { currentPosition->
-                   seekBarVn.progress = currentPosition
-                    tvTimer.text = formatTime(currentPosition.toLong())
-                }
-            )
-             player.seekto(seekBarVn.progress.toLong())
-             isStart = true
-             isPlaying = true
-        }
-
-        fun pauseResumeAudio(){
-            if(isPlaying){
-                player.pause()
-                btnPlayPause.setImageResource(R.drawable.ic_play)
-                isPlaying = false
-            }
-            else{
-                player.resume()
-                player.seekto(seekBarVn.progress.toLong())
-                btnPlayPause.setImageResource(R.drawable.ic_pause)
-                isPlaying = true
-            }
-
-        }
-
-        private fun stopAudio(){
-            player?.stop()
-            isStart = false
-            isPlaying = false
-            btnPlayPause.setImageResource(R.drawable.ic_play)
-            seekBarVn.progress = 0
-            tvTimer.text = formatTime(duration.toLong())
-        }
-
-        private fun formatTime(milliseconds: Long): String {
-            val timeFormat = SimpleDateFormat("m:ss", Locale.getDefault())
-            return timeFormat.format(Date(milliseconds))
-        }
-
-        private fun getAudioDuration(file: File): Int {
-            val mediaPlayer = MediaPlayer()
-            mediaPlayer.setDataSource(file.absolutePath)
-            mediaPlayer.prepare()
-            val duration = mediaPlayer.duration
-            mediaPlayer.release()
-            return duration
         }
 
 

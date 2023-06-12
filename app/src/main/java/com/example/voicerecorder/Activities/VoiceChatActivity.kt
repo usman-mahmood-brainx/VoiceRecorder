@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.voicerecorder.Adapters.VoiceNoteAdapter
+import com.example.voicerecorder.AudioPlayers.VoiceNotePlayer
 import com.example.voicerecorder.AudioRecorder
 import com.example.voicerecorder.CustomTimer
 import com.example.voicerecorder.Models.VoiceNote
@@ -56,7 +57,7 @@ class VoiceChatActivity : AppCompatActivity() {
         val repository = (application as VoiceChatApplication).appRepository
         voiceChatViewModel = ViewModelProvider(this,VoiceChatViewModelFactory(repository)).get(VoiceChatViewModel::class.java)
 
-        val voiceNoteAdapter = VoiceNoteAdapter(emptyList(),this,binding.rvVoiceNotes)
+        val voiceNoteAdapter = VoiceNoteAdapter(emptyList(),this, VoiceNotePlayer(this))
         binding.rvVoiceNotes.layoutManager = LinearLayoutManager(this).apply {
             reverseLayout = true
             stackFromEnd = false
