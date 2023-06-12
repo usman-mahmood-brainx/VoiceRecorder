@@ -18,25 +18,39 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class VoiceNoteAdapter(
-    private var voiceNoteList: List<VoiceNote>,
+//    private var voiceNoteList: List<VoiceNote>,
     private val context:Context,
-    private val myplayer: VoiceNotePlayer
+    private val player: VoiceNotePlayer,
+    private val onNextButtonClick: (position:Int) -> Unit
 ) : RecyclerView.Adapter<VoiceNoteAdapter.ViewHolder>() {
 
     private lateinit var currentHolder: ViewHolder
-
+    private val voiceNoteList: ArrayList<VoiceNote> = arrayListOf()
 
     fun setList(list : List<VoiceNote>){
-        if(voiceNoteList.isEmpty()){
-            voiceNoteList = list
+        val previousList = voiceNoteList
+        voiceNoteList.apply {
+            clear()
+            if (list.isNotEmpty()){
+                addAll(list)
+            }
+        }
+        if(previousList.isNotEmpty()) {
             notifyDataSetChanged()
         }
         else{
-            voiceNoteList = list
             notifyItemInserted(0)
         }
-
     }
+
+    fun addItem(item :VoiceNote){
+        voiceNoteList.apply {
+           add(item)
+        }
+        notifyDataSetChanged()
+    }
+
+    fun getList()=voiceNoteList
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_voice_note, parent, false)
@@ -50,7 +64,6 @@ class VoiceNoteAdapter(
 
         holder.apply {
             bind(voiceNote)
-
 
             btnPlayPause.setOnClickListener{
                 if(!(::currentHolder.isInitialized)){
@@ -80,7 +93,7 @@ class VoiceNoteAdapter(
                 override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                     // Update the player's position based on the SeekBar progress
                     if (fromUser) {
-                        player?.seekto(progress.toLong())
+                        player?.moveToPosition(progress.toLong(),audioFile!!)
                     }
                 }
 
@@ -110,7 +123,7 @@ class VoiceNoteAdapter(
                     tvTimer.text = formatTime(currentPosition.toLong())
                 }
             )
-            player.seekto(seekBarVn.progress.toLong())
+            player.moveToPosition(seekBarVn.progress.toLong(),audioFile!!)
             isStart = true
             isPlaying = true
         }
@@ -119,12 +132,12 @@ class VoiceNoteAdapter(
     fun pauseResumeAudio(holder:ViewHolder){
         holder.apply {
             if (isPlaying) {
-                player.pause()
+                player.stop()
                 btnPlayPause.setImageResource(R.drawable.ic_play)
                 isPlaying = false
             } else {
-                player.resume()
-                player.seekto(seekBarVn.progress.toLong())
+                playAudio(holder)
+                player.moveToPosition(seekBarVn.progress.toLong(),audioFile!!)
                 btnPlayPause.setImageResource(R.drawable.ic_pause)
                 isPlaying = true
             }
@@ -141,6 +154,8 @@ class VoiceNoteAdapter(
             seekBarVn.progress = 0
             tvTimer.text = formatTime(duration.toLong())
         }
+        val currentPosition = holder.absoluteAdapterPosition
+        onNextButtonClick(currentPosition)
     }
 
     private fun formatTime(milliseconds: Long): String {
@@ -162,16 +177,16 @@ class VoiceNoteAdapter(
         val tvTimer: TextView = VoiceNoteItemView.findViewById(R.id.tv_timer_vn)
         val btnPlayPause: ImageButton = VoiceNoteItemView.findViewById(R.id.btn_play_pause_vn)
         val seekBarVn: SeekBar = VoiceNoteItemView.findViewById(R.id.seekBar_vn)
-        val player = VoiceNotePlayer(context)
+//        val player = VoiceNotePlayer(context)
         var isStart: Boolean = false
         var isPlaying:Boolean=false
         var audioFile:File? =null
         var duration:Int = 0
 
         fun bind(voiceNote: VoiceNote) {
-            val file =  File(context.filesDir, voiceNote.filePath)
-            audioFile =  file
-            duration = getAudioDuration(file)
+
+            audioFile =  File(context.filesDir, voiceNote.filePath)
+            duration = getAudioDuration(audioFile!!)
             tvTimer.text = formatTime(duration.toLong())
             seekBarVn.max = duration
             seekBarVn.progress=0

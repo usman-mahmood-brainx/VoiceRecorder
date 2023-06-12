@@ -10,7 +10,9 @@ interface  AudioPlayerInterface {
 
     }
     fun stop()
-    fun pause()
+    fun pause(){
+
+    }
     fun resume(){
 
     }
@@ -18,4 +20,5 @@ interface  AudioPlayerInterface {
     fun seekto(position: Long){
 
     }
+
 }

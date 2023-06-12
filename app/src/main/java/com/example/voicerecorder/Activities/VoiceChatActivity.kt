@@ -32,6 +32,7 @@ import java.util.*
 class VoiceChatActivity : AppCompatActivity() {
     private lateinit var binding: ActivityVoiceChatBinding
     private lateinit var voiceChatViewModel: VoiceChatViewModel
+    private lateinit var voiceNoteAdapter: VoiceNoteAdapter
 
 
     private val recorder by lazy {
@@ -57,13 +58,25 @@ class VoiceChatActivity : AppCompatActivity() {
         val repository = (application as VoiceChatApplication).appRepository
         voiceChatViewModel = ViewModelProvider(this,VoiceChatViewModelFactory(repository)).get(VoiceChatViewModel::class.java)
 
-        val voiceNoteAdapter = VoiceNoteAdapter(emptyList(),this, VoiceNotePlayer(this))
-        binding.rvVoiceNotes.layoutManager = LinearLayoutManager(this).apply {
-            reverseLayout = true
-            stackFromEnd = false
-        }
-        binding.rvVoiceNotes.adapter = voiceNoteAdapter
 
+        // voice Notes Setup
+
+       voiceNoteAdapter = VoiceNoteAdapter(
+           this,
+           VoiceNotePlayer(this),
+           onNextButtonClick = { onNextButtonClick(it) }
+       )
+
+        binding.rvVoiceNotes.apply {
+            layoutManager = LinearLayoutManager(this@VoiceChatActivity).apply {
+                reverseLayout = true
+                stackFromEnd = false
+            }
+            adapter = voiceNoteAdapter
+        }
+
+
+        // voice Notes Obserever
         voiceChatViewModel.voiceNotes.observe(this,{
             it?.let{
                 voiceNoteAdapter.setList(it.reversed())
@@ -73,10 +86,15 @@ class VoiceChatActivity : AppCompatActivity() {
 
         initListener()
 
-
-
-
     }
+   fun onNextButtonClick(position:Int) {
+       val nextPosition = position - 1
+       var item:VoiceNote
+       if(nextPosition >= 0 ) {
+           item =  voiceNoteAdapter.getList().get(nextPosition)
+           
+       }
+   }
 
     private fun initListener() {
         binding.btnDelete.visibility = View.INVISIBLE

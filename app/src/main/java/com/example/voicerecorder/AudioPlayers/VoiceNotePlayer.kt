@@ -12,7 +12,7 @@ import java.io.File
 
 class VoiceNotePlayer(private val context: Context) :AudioPlayerInterface {
 
-    private lateinit var progressRunnable: Runnable
+    private var progressRunnable: Runnable? = null
     private var handler: Handler? = null
     private val duration
         get() = player?.duration?.toInt()
@@ -27,7 +27,16 @@ class VoiceNotePlayer(private val context: Context) :AudioPlayerInterface {
 
 
     fun playVoiceNote(file: File, onComplete: () -> Unit, onReady: (currentPosition: Int) -> Unit) {
-        currentFile = file
+        if(currentFile == null){
+            currentFile = file
+        }
+        else if(currentFile != file){
+            player = null
+            handler = null
+            progressRunnable = null
+            currentFile = file
+
+        }
         val mediaItem = MediaItem.fromUri(file!!.toUri())
         ExoPlayer.Builder(context).build().apply {
             player = this
@@ -42,7 +51,9 @@ class VoiceNotePlayer(private val context: Context) :AudioPlayerInterface {
                             onComplete.invoke()
                         }
                         ExoPlayer.STATE_READY -> {
-                            handler?.post(progressRunnable)
+                            progressRunnable?.let {
+                                handler?.post(progressRunnable!!)
+                            }
                         }
                     }
                 }
@@ -67,10 +78,7 @@ class VoiceNotePlayer(private val context: Context) :AudioPlayerInterface {
 
     }
 
-    override fun pause() {
-        player?.playWhenReady = false
-        handler?.removeCallbacks(progressRunnable)
-    }
+
 
     override fun stop() {
         player?.apply {
@@ -78,20 +86,18 @@ class VoiceNotePlayer(private val context: Context) :AudioPlayerInterface {
             release()
         }
         player = null
-        handler?.removeCallbacks(progressRunnable)
-    }
-
-    override fun resume() {
-
-        player?.playWhenReady = true
-        val currentPosition = player?.currentPosition?.toInt()
-        val remainingTime = duration!! - currentPosition!!
-        handler?.postDelayed(progressRunnable, remainingTime.toLong())
+        progressRunnable?.let {
+            handler?.removeCallbacks(progressRunnable!!)
+        }
     }
 
 
-    override fun seekto(position: Long) {
-        player?.seekTo(position)
+
+    fun moveToPosition(position: Long,file: File) {
+        if(currentFile !=null && currentFile == file){
+            player?.seekTo(position)
+        }
+
     }
 
 }
