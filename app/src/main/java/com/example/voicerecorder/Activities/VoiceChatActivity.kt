@@ -1,10 +1,17 @@
 package com.example.voicerecorder.Activities
 
 import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
 import android.provider.Settings
 import android.view.View
 import android.widget.Toast
@@ -13,15 +20,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.voicerecorder.*
 import com.example.voicerecorder.Adapters.VoiceNoteAdapter
 import com.example.voicerecorder.AudioPlayers.VoiceNotePlayer
-import com.example.voicerecorder.AudioRecorder
-import com.example.voicerecorder.CustomTimer
 import com.example.voicerecorder.Models.VoiceNote
-import com.example.voicerecorder.R
+import com.example.voicerecorder.Utills.Constants.CHANNEL_ID
+import com.example.voicerecorder.Utills.Constants.CHANNEL_NAME
 import com.example.voicerecorder.ViewModels.VoiceChatViewModel
 import com.example.voicerecorder.ViewModels.VoiceChatViewModelFactory
-import com.example.voicerecorder.VoiceChatApplication
 import com.example.voicerecorder.databinding.ActivityVoiceChatBinding
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -35,8 +41,29 @@ class VoiceChatActivity : AppCompatActivity() {
     private lateinit var voiceNoteAdapter: VoiceNoteAdapter
 
 
+    private lateinit var voiceNoteService: VoiceNoteService
+    private var isVoiceNoteServiceBound: Boolean = false
+    private val voiceNoteServiceConnection = object : ServiceConnection {
+
+        override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
+            voiceNoteService = (binder as VoiceNoteService.MyBinder).service
+            isVoiceNoteServiceBound = true
+            voiceNoteService.player = player
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            isVoiceNoteServiceBound = false
+            voiceNoteService.player = null
+        }
+
+    }
+
+
     private val recorder by lazy {
         AudioRecorder(applicationContext)
+    }
+    val player by lazy {
+        VoiceNotePlayer(this)
     }
 
     private val recorderTimer by lazy {
@@ -52,20 +79,25 @@ class VoiceChatActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        createChannels()
         binding = ActivityVoiceChatBinding.inflate(layoutInflater)
         setContentView(binding.root)
+//        val intent =Intent(this, VoiceNoteService::class.java)
+//        startForegroundService(intent)
+//        bindService(intent,voiceNoteServiceConnection, Context.BIND_AUTO_CREATE)
+
 
         val repository = (application as VoiceChatApplication).appRepository
-        voiceChatViewModel = ViewModelProvider(this,VoiceChatViewModelFactory(repository)).get(VoiceChatViewModel::class.java)
+        voiceChatViewModel = ViewModelProvider(
+            this,
+            VoiceChatViewModelFactory(repository)
+        ).get(VoiceChatViewModel::class.java)
 
-
-        // voice Notes Setup
-
-       voiceNoteAdapter = VoiceNoteAdapter(
-           this,
-           VoiceNotePlayer(this),
-           onNextButtonClick = { onNextButtonClick(it) }
-       )
+        voiceNoteAdapter = VoiceNoteAdapter(
+            this,
+            player,
+            onNextButtonClick = { onNextButtonClick(it) }
+        )
 
         binding.rvVoiceNotes.apply {
             layoutManager = LinearLayoutManager(this@VoiceChatActivity).apply {
@@ -77,41 +109,45 @@ class VoiceChatActivity : AppCompatActivity() {
 
 
         // voice Notes Obserever
-        voiceChatViewModel.voiceNotes.observe(this,{
-            it?.let{
-                voiceNoteAdapter.setList(it.reversed())
-                binding.rvVoiceNotes.scrollToPosition(0)
+        voiceChatViewModel.voiceNotes.observe(this, {
+            if (::voiceNoteAdapter.isInitialized) {
+                it?.let {
+                    voiceNoteAdapter?.setList(it.reversed())
+                    binding.rvVoiceNotes.scrollToPosition(0)
+                }
             }
         })
 
+
         initListener()
 
+
     }
-   fun onNextButtonClick(position:Int) {
-       val nextPosition = position - 1
-       if(nextPosition >= 0 ) {
-           val nextHolder = binding.rvVoiceNotes.findViewHolderForAdapterPosition(nextPosition) as? VoiceNoteAdapter.ViewHolder
-           nextHolder?.let {
-               nextHolder.btnPlayPause.performClick()
-           }
-           
-       }
-   }
+
+    fun onNextButtonClick(position: Int) {
+        val nextPosition = position - 1
+        if (nextPosition >= 0) {
+            val nextHolder =
+                binding.rvVoiceNotes.findViewHolderForAdapterPosition(nextPosition) as? VoiceNoteAdapter.ViewHolder
+            nextHolder?.let {
+                nextHolder.btnPlayPause.performClick()
+            }
+
+        }
+    }
 
     private fun initListener() {
         binding.btnDelete.visibility = View.INVISIBLE
         binding.btnRecordSend.setOnClickListener {
             lifecycleScope.launch {
-                recordPermissionFlag.collect{
-                    if(it){
+                recordPermissionFlag.collect {
+                    if (it) {
                         if (!isRecordingStart) {
                             startRecording()
-                        }
-                        else{
+                        } else {
                             sendRecording()
                         }
-                    }
-                    else{
+                    } else {
                         requestPermission()
                     }
                 }
@@ -126,13 +162,13 @@ class VoiceChatActivity : AppCompatActivity() {
     }
 
     private fun startRecording() {
-       File(filesDir, createAudioFile()).also {
+        File(filesDir, createAudioFile()).also {
             recorder.start(it)
             audioFile = it
         }
 
         binding.tvRecordTimer.visibility = View.VISIBLE
-        recorderTimer.startTimer{time->
+        recorderTimer.startTimer { time ->
             binding.tvRecordTimer.text = time
         }
         isRecordingStart = true
@@ -140,22 +176,22 @@ class VoiceChatActivity : AppCompatActivity() {
         binding.btnDelete.visibility = View.VISIBLE
     }
 
-    private fun sendRecording(){
+    private fun sendRecording() {
         recorder.stop()
         recorderTimer.stopTimer()
         isRecordingStart = false
         binding.btnRecordSend.setImageResource(R.drawable.ic_mic)
         binding.tvRecordTimer.visibility = View.INVISIBLE
         binding.btnDelete.visibility = View.INVISIBLE
-        audioFile?.apply{
-           voiceChatViewModel.addVoiceNote(
-               VoiceNote(0,audioFile?.name)
-           )
+        audioFile?.apply {
+            voiceChatViewModel.addVoiceNote(
+                VoiceNote(0, audioFile?.name)
+            )
         }
         audioFile = null
     }
 
-    private fun cancelRecording(){
+    private fun cancelRecording() {
         recorder.stop()
         recorderTimer.stopTimer()
         binding.btnRecordSend.setImageResource(R.drawable.ic_mic)
@@ -165,11 +201,11 @@ class VoiceChatActivity : AppCompatActivity() {
     }
 
 
-
     fun createAudioFile(): String {
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         return "usman_voicenote_$timeStamp"
     }
+
 
     val requestMultiplePermissionsLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
@@ -194,11 +230,10 @@ class VoiceChatActivity : AppCompatActivity() {
 
 
         } else {
-            permissionList.forEach{
-                if(!shouldShowRequestPermissionRationale(it)){
+            permissionList.forEach {
+                if (!shouldShowRequestPermissionRationale(it)) {
                     requestMultiplePermissionsLauncher.launch(permissionList.toTypedArray())
-                }
-                else{
+                } else {
                     val permissionIntent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                     val uri = Uri.fromParts("package", packageName, null)
                     permissionIntent.data = uri
@@ -208,6 +243,34 @@ class VoiceChatActivity : AppCompatActivity() {
         }
     }
 
+    private fun createChannels() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
+        val channel =
+            NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH)
+        channel.description = "This is an important channel for voice notes"
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
+    }
+
+    //    override fun onDestroy() {
+//        super.onDestroy()
+//        if (isVoiceNoteServiceBound) {
+//            unbindService(voiceNoteServiceConnection)
+//        }
+//    }
+    override fun onStop() {
+        super.onStop()
+        if (player.isPlayerRunning()) {
+            val intent = Intent(this, VoiceNoteService::class.java)
+            startForegroundService(intent)
+            bindService(intent, voiceNoteServiceConnection, Context.BIND_AUTO_CREATE)
+        }
+    }
+//
+//    override fun onResume() {
+//        super.onResume()
+//        player.resume()
+//    }
 
 
 }

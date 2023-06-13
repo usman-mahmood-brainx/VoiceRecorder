@@ -18,7 +18,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class VoiceNoteAdapter(
-//    private var voiceNoteList: List<VoiceNote>,
     private val context:Context,
     private val player: VoiceNotePlayer,
     private val onNextButtonClick: (position:Int) -> Unit
@@ -26,6 +25,7 @@ class VoiceNoteAdapter(
 
     private lateinit var currentHolder: ViewHolder
     private val voiceNoteList: ArrayList<VoiceNote> = arrayListOf()
+
 
     fun setList(list : List<VoiceNote>){
         val previousList = voiceNoteList
@@ -41,13 +41,6 @@ class VoiceNoteAdapter(
         else{
             notifyItemInserted(0)
         }
-    }
-
-    fun addItem(item :VoiceNote){
-        voiceNoteList.apply {
-           add(item)
-        }
-        notifyDataSetChanged()
     }
 
     fun getList()=voiceNoteList
@@ -96,11 +89,9 @@ class VoiceNoteAdapter(
                         player?.moveToPosition(progress.toLong(),audioFile!!)
                     }
                 }
-
                 override fun onStartTrackingTouch(seekBar: SeekBar?) {
                     // Not needed
                 }
-
                 override fun onStopTrackingTouch(seekBar: SeekBar?) {
                     // Not needed
                 }
@@ -177,7 +168,6 @@ class VoiceNoteAdapter(
         val tvTimer: TextView = VoiceNoteItemView.findViewById(R.id.tv_timer_vn)
         val btnPlayPause: ImageButton = VoiceNoteItemView.findViewById(R.id.btn_play_pause_vn)
         val seekBarVn: SeekBar = VoiceNoteItemView.findViewById(R.id.seekBar_vn)
-//        val player = VoiceNotePlayer(context)
         var isStart: Boolean = false
         var isPlaying:Boolean=false
         var audioFile:File? =null
@@ -195,6 +185,7 @@ class VoiceNoteAdapter(
 
 
     }
+
 
 
 }

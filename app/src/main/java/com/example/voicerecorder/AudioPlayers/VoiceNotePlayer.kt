@@ -18,13 +18,17 @@ class VoiceNotePlayer(private val context: Context) :AudioPlayerInterface {
         get() = player?.duration?.toInt()
     private var player: ExoPlayer? = null
     private var currentFile :File?= null
+    private var playbackPosition: Long = 0
+    private var isPlayerRunning: Boolean = false
 
 
     override fun getPlayerName(): String {
         return "Exo Player"
     }
 
-
+    fun isPlayerRunning(): Boolean {
+        return isPlayerRunning
+    }
 
     fun playVoiceNote(file: File, onComplete: () -> Unit, onReady: (currentPosition: Int) -> Unit) {
         if(currentFile == null){
@@ -74,7 +78,7 @@ class VoiceNotePlayer(private val context: Context) :AudioPlayerInterface {
                 )
             }
         }
-
+        isPlayerRunning = true
 
     }
 
@@ -89,6 +93,7 @@ class VoiceNotePlayer(private val context: Context) :AudioPlayerInterface {
         progressRunnable?.let {
             handler?.removeCallbacks(progressRunnable!!)
         }
+        isPlayerRunning = false
     }
 
 
@@ -98,6 +103,18 @@ class VoiceNotePlayer(private val context: Context) :AudioPlayerInterface {
             player?.seekTo(position)
         }
 
+    }
+
+    override fun pause() {
+        player?.playWhenReady = false
+        playbackPosition = player?.currentPosition ?: 0
+        isPlayerRunning = false
+    }
+
+    override fun resume() {
+        player?.playWhenReady = true
+        player?.seekTo(playbackPosition)
+        isPlayerRunning = true
     }
 
 }
