@@ -89,9 +89,11 @@ class VoiceChatActivity : AppCompatActivity() {
     }
    fun onNextButtonClick(position:Int) {
        val nextPosition = position - 1
-       var item:VoiceNote
        if(nextPosition >= 0 ) {
-           item =  voiceNoteAdapter.getList().get(nextPosition)
+           val nextHolder = binding.rvVoiceNotes.findViewHolderForAdapterPosition(nextPosition) as? VoiceNoteAdapter.ViewHolder
+           nextHolder?.let {
+               nextHolder.btnPlayPause.performClick()
+           }
            
        }
    }
