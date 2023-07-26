@@ -1,4 +1,4 @@
-package com.example.voicerecorder.data
+package com.example.voicerecorder.room
 
 import androidx.lifecycle.LiveData
 import androidx.room.*

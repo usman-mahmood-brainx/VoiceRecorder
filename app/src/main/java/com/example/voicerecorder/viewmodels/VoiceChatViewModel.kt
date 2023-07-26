@@ -1,10 +1,10 @@
-package com.example.voicerecorder.ViewModels
+package com.example.voicerecorder.viewmodels
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.voicerecorder.Models.VoiceNote
-import com.example.voicerecorder.data.AppRepository
+import com.example.voicerecorder.repository.AppRepository
 import kotlinx.coroutines.launch
 
 class VoiceChatViewModel(private val appRepository: AppRepository):ViewModel() {

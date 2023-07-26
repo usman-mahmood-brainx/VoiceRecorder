@@ -1,7 +1,8 @@
-package com.example.voicerecorder.data
+package com.example.voicerecorder.repository
 
 import androidx.lifecycle.LiveData
 import com.example.voicerecorder.Models.VoiceNote
+import com.example.voicerecorder.room.VoiceNoteDatabase
 
 class AppRepository(private val voiceNoteDatabase: VoiceNoteDatabase) {
 

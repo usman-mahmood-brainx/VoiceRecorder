@@ -1,4 +1,4 @@
-package com.example.voicerecorder
+package com.example.voicerecorder.recorder
 
 import android.content.Context
 import android.media.AudioDeviceInfo

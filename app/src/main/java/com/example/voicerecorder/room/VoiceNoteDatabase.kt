@@ -1,4 +1,4 @@
-package com.example.voicerecorder.data
+package com.example.voicerecorder.room
 
 import android.content.Context
 import androidx.room.Database

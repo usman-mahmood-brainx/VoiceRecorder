@@ -1,4 +1,4 @@
-package com.example.voicerecorder
+package com.example.voicerecorder.service
 
 import android.app.Notification
 import android.app.PendingIntent
@@ -13,8 +13,9 @@ import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
 import androidx.core.app.NotificationCompat
 import com.example.voicerecorder.AudioPlayers.VoiceNotePlayer
-import com.example.voicerecorder.Utills.Constants.ACTION_STOP_FOREGROUND
-import com.example.voicerecorder.Utills.Constants.CHANNEL_ID
+import com.example.voicerecorder.R
+import com.example.voicerecorder.utils.Constants.ACTION_STOP_FOREGROUND
+import com.example.voicerecorder.utils.Constants.CHANNEL_ID
 
 class VoiceNoteService : Service() {
 
@@ -51,13 +52,9 @@ class VoiceNoteService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // Start the service as a foreground service
 
-
         // Register the BroadcastReceiver to receive the notification click event
         val filter = IntentFilter(ACTION_STOP_FOREGROUND)
         registerReceiver(stopForegroundReceiver, filter)
-
-
-
 
         mediaSession = MediaSessionCompat(baseContext,"My audio")
         startForeground(13,createNotification())
@@ -77,7 +74,7 @@ class VoiceNoteService : Service() {
             .setContentTitle("Voice Note")
             .setContentText("usman")
             .setSmallIcon(R.drawable.ic_launcher_background)
-            .setLargeIcon(BitmapFactory.decodeResource(resources,R.drawable.ic_play))
+            .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.ic_play))
             .setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.sessionToken))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -93,7 +90,7 @@ class VoiceNoteService : Service() {
 
 
     inner class MyBinder:Binder(){
-        val service:VoiceNoteService
+        val service: VoiceNoteService
             get() = this@VoiceNoteService
     }
 }

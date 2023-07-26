@@ -1,4 +1,4 @@
-package com.example.voicerecorder.Utills
+package com.example.voicerecorder.utils
 
 object Constants {
 

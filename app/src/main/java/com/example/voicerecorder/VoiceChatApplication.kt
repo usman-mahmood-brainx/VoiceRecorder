@@ -1,8 +1,8 @@
 package com.example.voicerecorder
 
 import android.app.Application
-import com.example.voicerecorder.data.AppRepository
-import com.example.voicerecorder.data.VoiceNoteDatabase
+import com.example.voicerecorder.repository.AppRepository
+import com.example.voicerecorder.room.VoiceNoteDatabase
 
 class VoiceChatApplication: Application() {
 

@@ -20,15 +20,19 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.voicerecorder.*
 import com.example.voicerecorder.Adapters.VoiceNoteAdapter
 import com.example.voicerecorder.AudioPlayers.VoiceNotePlayer
+import com.example.voicerecorder.CustomTimer
 import com.example.voicerecorder.Models.VoiceNote
-import com.example.voicerecorder.Utills.Constants.CHANNEL_ID
-import com.example.voicerecorder.Utills.Constants.CHANNEL_NAME
-import com.example.voicerecorder.ViewModels.VoiceChatViewModel
-import com.example.voicerecorder.ViewModels.VoiceChatViewModelFactory
+import com.example.voicerecorder.R
+import com.example.voicerecorder.VoiceChatApplication
 import com.example.voicerecorder.databinding.ActivityVoiceChatBinding
+import com.example.voicerecorder.recorder.AudioRecorder
+import com.example.voicerecorder.service.VoiceNoteService
+import com.example.voicerecorder.utils.Constants.CHANNEL_ID
+import com.example.voicerecorder.utils.Constants.CHANNEL_NAME
+import com.example.voicerecorder.viewmodels.VoiceChatViewModel
+import com.example.voicerecorder.viewmodels.VoiceChatViewModelFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
@@ -82,10 +86,6 @@ class VoiceChatActivity : AppCompatActivity() {
         createChannels()
         binding = ActivityVoiceChatBinding.inflate(layoutInflater)
         setContentView(binding.root)
-//        val intent =Intent(this, VoiceNoteService::class.java)
-//        startForegroundService(intent)
-//        bindService(intent,voiceNoteServiceConnection, Context.BIND_AUTO_CREATE)
-
 
         val repository = (application as VoiceChatApplication).appRepository
         voiceChatViewModel = ViewModelProvider(
@@ -106,7 +106,6 @@ class VoiceChatActivity : AppCompatActivity() {
             }
             adapter = voiceNoteAdapter
         }
-
 
         // voice Notes Obserever
         voiceChatViewModel.voiceNotes.observe(this, {
@@ -252,12 +251,11 @@ class VoiceChatActivity : AppCompatActivity() {
         notificationManager.createNotificationChannel(channel)
     }
 
-    //    override fun onDestroy() {
+//    override fun onDestroy() {
 //        super.onDestroy()
-//        if (isVoiceNoteServiceBound) {
-//            unbindService(voiceNoteServiceConnection)
-//        }
+//        stopingMediaService()
 //    }
+
     override fun onStop() {
         super.onStop()
         if (player.isPlayerRunning()) {
@@ -266,11 +264,21 @@ class VoiceChatActivity : AppCompatActivity() {
             bindService(intent, voiceNoteServiceConnection, Context.BIND_AUTO_CREATE)
         }
     }
-//
+
 //    override fun onResume() {
 //        super.onResume()
-//        player.resume()
+//        stopingMediaService()
+//
 //    }
+
+    private fun stopingMediaService() {
+        if (isVoiceNoteServiceBound) {
+            unbindService(voiceNoteServiceConnection)
+            val intent = Intent(this, VoiceNoteService::class.java)
+            stopService(intent)
+            isVoiceNoteServiceBound = false
+        }
+    }
 
 
 }
